@@ -2,8 +2,8 @@ import { useLocation } from "wouter";
 
 const tabs = [
   { id: "chat", label: "Chat", icon: "💬", path: "/chat" },
-  { id: "geschiedenis", label: "Geschiedenis", icon: "📜", path: "/history" },
-  { id: "acties", label: "Acties", icon: "💪", path: "/actions" },
+  { id: "geschiedenis", label: "Geschiedenis", icon: "📋", path: "/history" },
+  { id: "acties", label: "Acties", icon: "🎯", path: "/actions" },
   { id: "profiel", label: "Profiel", icon: "👤", path: "/profile" },
 ];
 
@@ -22,7 +22,7 @@ export default function BottomNavigation() {
               onClick={() => setLocation(tab.path)}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
                 isActive
-                  ? "text-foreground opacity-100"
+                  ? "text-primary opacity-100"
                   : "text-muted-foreground opacity-80 hover:opacity-100"
               }`}
               aria-current={isActive ? "page" : undefined}

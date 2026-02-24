@@ -1,7 +1,7 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, users, 
+import {
+  InsertUser, users,
   InsertFamilyProfile, familyProfiles,
   InsertConversation, conversations,
   InsertAnalyticsEvent, analyticsEvents,
@@ -116,7 +116,7 @@ export async function createConversation(userId: number, themeId: string): Promi
 
   const result = await db.select().from(conversations)
     .where(and(eq(conversations.userId, userId), eq(conversations.themeId, themeId)))
-    .orderBy(conversations.createdAt)
+    .orderBy(desc(conversations.createdAt))
     .limit(1);
 
   return result[0]!;
@@ -127,10 +127,32 @@ export async function getConversation(userId: number, themeId: string): Promise<
   if (!db) return undefined;
 
   const result = await db.select().from(conversations)
-    .where(and(eq(conversations.userId, userId), eq(conversations.themeId, themeId)))
+    .where(and(eq(conversations.userId, userId), eq(conversations.themeId, themeId), eq(conversations.isArchived, 0)))
+    .orderBy(desc(conversations.updatedAt))
     .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getConversationById(userId: number, conversationId: number): Promise<Conversation | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(conversations)
+    .where(and(eq(conversations.id, conversationId), eq(conversations.userId, userId)))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllConversations(userId: number): Promise<Conversation[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(conversations)
+    .where(eq(conversations.userId, userId))
+    .orderBy(desc(conversations.updatedAt))
+    .limit(20);
 }
 
 export async function updateConversation(conversationId: number, updates: Partial<Omit<Conversation, 'id'>>): Promise<void> {
@@ -140,16 +162,23 @@ export async function updateConversation(conversationId: number, updates: Partia
   await db.update(conversations).set(updates).where(eq(conversations.id, conversationId));
 }
 
+export async function updateConversationMessages(conversationId: number, messages: any[]): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(conversations).set({ messages }).where(eq(conversations.id, conversationId));
+}
+
 export async function getConversationHistory(userId: number, themeId: string): Promise<Conversation[]> {
   const db = await getDb();
   if (!db) return [];
 
   return db.select().from(conversations)
     .where(and(eq(conversations.userId, userId), eq(conversations.themeId, themeId)))
-    .orderBy(conversations.createdAt);
+    .orderBy(desc(conversations.createdAt));
 }
 
-// Analytics operations
+// Analytics
 export async function logAnalyticsEvent(event: InsertAnalyticsEvent): Promise<void> {
   const db = await getDb();
   if (!db) {

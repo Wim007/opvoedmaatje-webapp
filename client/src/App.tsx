@@ -1,52 +1,25 @@
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import Onboarding from "./pages/Onboarding";
-import Chat from "./pages/Chat";
-import Profile from "./pages/Profile";
-import { useAuth } from "./_core/hooks/useAuth";
+import { Route, Switch } from 'wouter';
+import Chat from './pages/Chat';
+import Onboarding from './pages/Onboarding';
+import Profile from './pages/Profile';
 
-function Router() {
-  const { isAuthenticated, loading } = useAuth();
+function NotFound() {
+  return <div style={{padding:'2rem',textAlign:'center'}}><h1>404 - Pagina niet gevonden</h1></div>;
+}
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Laden...</p>
-      </div>
-    );
-  }
-
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      {isAuthenticated ? (
-        <>
-          <Route path={"/onboarding"} component={Onboarding} />
-          <Route path={"/chat"} component={Chat} />
-          <Route path={"/profile"} component={Profile} />
-        </>
-      ) : null}
-      <Route path={"/404"} component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+function Home() {
+  return <div style={{padding:'2rem'}}><h1>Opvoedmaatje</h1><p>Welkom bij Opvoedmaatje!</p></div>;
 }
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/onboarding" component={Onboarding} />
+      <Route path="/chat" component={Chat} />
+      <Route path="/profile" component={Profile} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 

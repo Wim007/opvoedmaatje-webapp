@@ -17,12 +17,12 @@ export const users = mysqlTable("users", {
 export const familyProfiles = mysqlTable("familyProfiles", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  familyComposition: varchar("familyComposition", { length: 64 }).notNull(), // "single", "couple", "extended"
+  familyComposition: varchar("familyComposition", { length: 64 }).notNull(),
   focusChildName: varchar("focusChildName", { length: 255 }).notNull(),
   focusChildAge: int("focusChildAge").notNull(),
-  focusChildGender: varchar("focusChildGender", { length: 32 }).notNull(), // "male", "female", "other"
-  postcode: varchar("postcode", { length: 10 }), // Optional, privacy-first
-  selectedThemes: json("selectedThemes").notNull(), // Array of theme IDs
+  focusChildGender: varchar("focusChildGender", { length: 32 }).notNull(),
+  postcode: varchar("postcode", { length: 10 }),
+  selectedThemes: json("selectedThemes").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -31,25 +31,42 @@ export const familyProfiles = mysqlTable("familyProfiles", {
 export const conversations = mysqlTable("conversations", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  themeId: varchar("themeId", { length: 64 }).notNull(), // e.g., "sleep", "behavior", "development"
-  messages: json("messages").notNull(), // Array of {role, content, timestamp}
+  themeId: varchar("themeId", { length: 64 }).notNull(),
+  messages: json("messages").notNull(),
+  summary: text("summary"),
   outcome: mysqlEnum("outcome", ["resolved", "in_progress", "referred"]).default("in_progress"),
-  safetyRisk: varchar("safetyRisk", { length: 255 }), // e.g., "abuse", "neglect", "suicide_risk"
-  referralMade: timestamp("referralMade"), // When referral was made
-  referralType: varchar("referralType", { length: 64 }), // "113", "veilig_thuis", "ggz", "112"
+  safetyRisk: varchar("safetyRisk", { length: 255 }),
+  referralMade: timestamp("referralMade"),
+  referralType: varchar("referralType", { length: 64 }),
+  isArchived: int("isArchived").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-// Analytics events (fire-and-forget)
+// Actions (concrete stappen voor ouders)
+export const actions = mysqlTable("actions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  themeId: varchar("themeId", { length: 64 }).notNull(),
+  conversationId: int("conversationId"),
+  actionText: varchar("actionText", { length: 1000 }).notNull(),
+  status: mysqlEnum("status", ["pending", "completed", "cancelled"]).default("pending").notNull(),
+  followUpScheduled: timestamp("followUpScheduled"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Analytics events
 export const analyticsEvents = mysqlTable("analyticsEvents", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId"), // Anonymous if null
-  eventType: varchar("eventType", { length: 64 }).notNull(), // "conversation", "resolved", "referred", "safety_risk"
+  userId: int("userId"),
+  eventType: varchar("eventType", { length: 64 }).notNull(),
   themeId: varchar("themeId", { length: 64 }),
-  postcode: varchar("postcode", { length: 10 }), // Regional data (anonymous)
+  postcode: varchar("postcode", { length: 10 }),
   outcome: varchar("outcome", { length: 64 }),
-  metadata: json("metadata"), // Additional data
+  safetyRisk: varchar("safetyRisk", { length: 255 }),
+  metadata: json("metadata"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -59,5 +76,7 @@ export type FamilyProfile = typeof familyProfiles.$inferSelect;
 export type InsertFamilyProfile = typeof familyProfiles.$inferInsert;
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = typeof conversations.$inferInsert;
+export type Action = typeof actions.$inferSelect;
+export type InsertAction = typeof actions.$inferInsert;
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;

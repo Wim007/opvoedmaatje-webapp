@@ -5,8 +5,8 @@ import { Route, Switch } from 'wouter';
 import { trpc } from './lib/trpc';
 import Chat from './pages/Chat';
 import Onboarding from './pages/Onboarding';
-import Profile from './pages/Profiel';
-import History from './pages/Geschiedenis';
+import Profile from './pages/Profile';
+import History from './pages/History';
 import Actions from './pages/Actions';
 
 function NotFound() {
@@ -37,7 +37,6 @@ function App() {
       },
     },
   }));
-
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
@@ -47,7 +46,6 @@ function App() {
       ],
     })
   );
-
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
